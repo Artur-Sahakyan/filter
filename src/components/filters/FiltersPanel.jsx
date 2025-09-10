@@ -2,7 +2,9 @@ import CheckboxList from "./CheckboxList";
 
 export default function FiltersPanel({ open, onClose, filters, setFilters, options }) {
   const toggleCategory = (c) => {
-    console.log(c)
+    const has = filters.categories.includes(c);
+    const next = has ? filters.categories.filter(x => x !== c) : [...filters.categories, c];
+    setFilters({ ...filters, categories: next });
   };
 
   const Body = (
