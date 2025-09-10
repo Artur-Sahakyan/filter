@@ -39,6 +39,7 @@ export default function useFilterState(products = []) {
     categories: [],
     brands: [],
     price: [minPrice, maxPrice],
+    minRating: 0,            // added
   });
 
   useEffect(() => {

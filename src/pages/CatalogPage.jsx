@@ -14,19 +14,20 @@ export default function CatalogPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [debouncedSearchText] = useDebouncedValue(filters.search, 1000);
 
-  const categoryBrandPriceFilteredProducts = useMemo(() => {
+  const categoryBrandPriceRatingFilteredProducts = useMemo(() => {
     if (!products?.length) return [];
 
     const hasCategories = filters.categories.length > 0;
     const hasBrands = filters.brands.length > 0;
+    const rawMin = Array.isArray(filters.price) ? filters.price[0] : undefined;
+    const rawMax = Array.isArray(filters.price) ? filters.price[1] : undefined;
+
     const minSelectedPrice =
-      Array.isArray(filters.price) && typeof filters.price[0] === "number"
-        ? filters.price[0]
-        : options.minPrice;
+      rawMin === "" || Number.isNaN(Number(rawMin)) ? options.minPrice : Number(rawMin);
     const maxSelectedPrice =
-      Array.isArray(filters.price) && typeof filters.price[1] === "number"
-        ? filters.price[1]
-        : options.maxPrice;
+      rawMax === "" || Number.isNaN(Number(rawMax)) ? options.maxPrice : Number(rawMax);
+    const minSelectedRating =
+      typeof filters.minRating === "number" ? filters.minRating : 0;
 
     return products.filter((product) => {
       const matchesCategory =
@@ -42,11 +43,24 @@ export default function CatalogPage() {
         product.price >= minSelectedPrice &&
         product.price <= maxSelectedPrice;
 
-      return matchesCategory && matchesBrand && matchesPrice;
-    });
-  }, [products, filters.categories, filters.brands, filters.price, options.minPrice, options.maxPrice]);
+      const matchesRating =
+        typeof product.rating === "number" &&
+        product.rating >= minSelectedRating;
 
-  const [filteredProducts, setFilteredProducts] = useState(categoryBrandPriceFilteredProducts);
+      return matchesCategory && matchesBrand && matchesPrice && matchesRating;
+    });
+  }, [
+    products,
+    filters.categories,
+    filters.brands,
+    filters.price,
+    filters.minRating,
+    options.minPrice,
+    options.maxPrice,
+  ]);
+
+  // Final list 
+  const [filteredProducts, setFilteredProducts] = useState(categoryBrandPriceRatingFilteredProducts);
   const [isApplyingFilters, setIsApplyingFilters] = useState(false);
   useEffect(() => {
     if (!products?.length) return;
@@ -54,13 +68,13 @@ export default function CatalogPage() {
     setIsApplyingFilters(true);
     const timerId = setTimeout(() => {
       setFilteredProducts(
-        applySearch(categoryBrandPriceFilteredProducts, debouncedSearchText)
+        applySearch(categoryBrandPriceRatingFilteredProducts, debouncedSearchText)
       );
       setIsApplyingFilters(false);
-    }, 500);
+    }, 500); // simulat
 
     return () => clearTimeout(timerId);
-  }, [debouncedSearchText, categoryBrandPriceFilteredProducts, products]);
+  }, [debouncedSearchText, categoryBrandPriceRatingFilteredProducts, products]);
 
   return (
     <Layout title="Product Catalog">

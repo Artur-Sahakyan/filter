@@ -85,6 +85,26 @@ export default function FiltersPanel({ open, onClose, filters, setFilters, optio
       </div>
     </div>
 
+      {/* Rating  */}
+      <div className="rounded-lg border border-gray-200">
+        <div className="border-b border-gray-200 px-3 py-2 text-sm font-medium">Min Rating</div>
+        <div className="p-3 space-y-2">
+          {[5, 4, 3, 2, 1, 0].map((stars) => (
+            <label key={stars} className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="radio"
+                name="min-rating"
+                className="h-4 w-4"
+                checked={Number(filters.minRating) === stars}
+                onChange={() => setFilters({ ...filters, minRating: stars })}
+              />
+              <span className="text-amber-500">{"★".repeat(stars)}</span>
+              <span className="text-gray-500">{stars === 0 ? "Any" : `${stars === 5 ? stars : stars + "+"}`}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
 
       <button
         type="button"
@@ -94,6 +114,7 @@ export default function FiltersPanel({ open, onClose, filters, setFilters, optio
             categories: [],
             brands: [],
             price: [options.minPrice, options.maxPrice],
+            minRating: 0,
           })
         }
         className="w-full rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
