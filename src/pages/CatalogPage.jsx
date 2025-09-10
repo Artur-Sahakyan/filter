@@ -14,37 +14,53 @@ export default function CatalogPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [debouncedSearchText] = useDebouncedValue(filters.search, 1000);
 
-  const categoryBrandFilteredProducts = useMemo(() => {
+  const categoryBrandPriceFilteredProducts = useMemo(() => {
     if (!products?.length) return [];
 
     const hasCategories = filters.categories.length > 0;
     const hasBrands = filters.brands.length > 0;
+    const minSelectedPrice =
+      Array.isArray(filters.price) && typeof filters.price[0] === "number"
+        ? filters.price[0]
+        : options.minPrice;
+    const maxSelectedPrice =
+      Array.isArray(filters.price) && typeof filters.price[1] === "number"
+        ? filters.price[1]
+        : options.maxPrice;
 
     return products.filter((product) => {
       const matchesCategory =
-        !hasCategories || (product.category && filters.categories.includes(product.category));
+        !hasCategories ||
+        (product.category && filters.categories.includes(product.category));
 
       const matchesBrand =
-        !hasBrands || (product.brand && filters.brands.includes(product.brand));
+        !hasBrands ||
+        (product.brand && filters.brands.includes(product.brand));
 
-      return matchesCategory && matchesBrand;
+      const matchesPrice =
+        typeof product.price === "number" &&
+        product.price >= minSelectedPrice &&
+        product.price <= maxSelectedPrice;
+
+      return matchesCategory && matchesBrand && matchesPrice;
     });
-  }, [products, filters.categories, filters.brands]);
+  }, [products, filters.categories, filters.brands, filters.price, options.minPrice, options.maxPrice]);
 
-  const [filteredProducts, setFilteredProducts] = useState(categoryBrandFilteredProducts);
+  const [filteredProducts, setFilteredProducts] = useState(categoryBrandPriceFilteredProducts);
   const [isApplyingFilters, setIsApplyingFilters] = useState(false);
-
   useEffect(() => {
     if (!products?.length) return;
 
     setIsApplyingFilters(true);
     const timerId = setTimeout(() => {
-      setFilteredProducts(applySearch(categoryBrandFilteredProducts, debouncedSearchText));
+      setFilteredProducts(
+        applySearch(categoryBrandPriceFilteredProducts, debouncedSearchText)
+      );
       setIsApplyingFilters(false);
     }, 500);
 
     return () => clearTimeout(timerId);
-  }, [debouncedSearchText, categoryBrandFilteredProducts, products]);
+  }, [debouncedSearchText, categoryBrandPriceFilteredProducts, products]);
 
   return (
     <Layout title="Product Catalog">
@@ -63,7 +79,12 @@ export default function CatalogPage() {
           onClose={() => setFiltersOpen(false)}
           filters={filters}
           setFilters={setFilters}
-          options={{ categories: options.categories, brands: options.brands }}
+          options={{
+            categories: options.categories,
+            brands: options.brands,
+            minPrice: options.minPrice,
+            maxPrice: options.maxPrice,
+          }}
         />
 
         <div className="flex-1">

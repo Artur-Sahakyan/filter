@@ -1,4 +1,3 @@
-// src/components/filters/FiltersPanel.jsx
 import CheckboxList from "./CheckboxList";
 
 export default function FiltersPanel({ open, onClose, filters, setFilters, options }) {
@@ -11,15 +10,16 @@ export default function FiltersPanel({ open, onClose, filters, setFilters, optio
   };
 
   const toggleBrand = (brand) => {
-    const isSelected = filters.brands.includes(brand);
+    const isSelected = filters.brands?.includes(brand);
     const next = isSelected
       ? filters.brands.filter((b) => b !== brand)
-      : [...filters.brands, brand];
+      : [...(filters.brands || []), brand];
     setFilters({ ...filters, brands: next });
   };
 
   const Body = (
     <div className="space-y-4">
+      {/* Search */}
       <div className="rounded-lg border border-gray-200">
         <div className="border-b border-gray-200 px-3 py-2 text-sm font-medium">Search</div>
         <div className="p-3">
@@ -33,6 +33,7 @@ export default function FiltersPanel({ open, onClose, filters, setFilters, optio
         </div>
       </div>
 
+      {/* Category */}
       <CheckboxList
         title="Category"
         items={options.categories}
@@ -40,16 +41,61 @@ export default function FiltersPanel({ open, onClose, filters, setFilters, optio
         onToggle={toggleCategory}
       />
 
-      <CheckboxList
-        title="Brand"
-        items={options.brands}
-        selected={filters.brands}
-        onToggle={toggleBrand}
-      />
+      {/* Brand */}
+      {options.brands && (
+        <CheckboxList
+          title="Brand"
+          items={options.brands}
+          selected={filters.brands || []}
+          onToggle={toggleBrand}
+        />
+      )}
+
+    {/* Price Range */}
+    <div className="rounded-lg border border-gray-200">
+      <div className="border-b border-gray-200 px-3 py-2 text-sm font-medium">
+        Price Range
+      </div>
+      <div className="p-3 grid grid-cols-2 gap-3">
+        <input
+          type="number"
+          value={filters.price[0]}
+          placeholder={`${options.minPrice}`}
+          onChange={(e) =>
+            setFilters({
+              ...filters,
+              price: [e.target.value === "" ? "" : Number(e.target.value), filters.price[1]],
+            })
+          }
+          className="no-spinner rounded-md border border-gray-300 px-2 py-2 text-sm outline-none"
+        />
+
+        <input
+          type="number"
+          value={filters.price[1]}
+          placeholder={`${options.maxPrice}`}
+          onChange={(e) =>
+            setFilters({
+              ...filters,
+              price: [filters.price[0], e.target.value === "" ? "" : Number(e.target.value)],
+            })
+          }
+          className="no-spinner rounded-md border border-gray-300 px-2 py-2 text-sm outline-none"
+        />
+      </div>
+    </div>
+
 
       <button
         type="button"
-        onClick={() => setFilters({ search: "", categories: [], brands: [] })}
+        onClick={() =>
+          setFilters({
+            search: "",
+            categories: [],
+            brands: [],
+            price: [options.minPrice, options.maxPrice],
+          })
+        }
         className="w-full rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
       >
         Reset
