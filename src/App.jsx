@@ -1,9 +1,5 @@
+import CatalogPage from "./pages/CatalogPage";
 
-function App() {
-
-  return (
-    <div className="p-2">App</div>
-  );
+export default function App() {
+  return <CatalogPage />;
 }
-
-export default App;
