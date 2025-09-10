@@ -9,32 +9,42 @@ import useDebouncedValue from "../hooks/useDebouncedValue";
 import { applySearch } from "../utils/helper/searchSimulator";
 
 export default function CatalogPage() {
-  const { data, loading, error } = useProducts();
-  const { filters, setFilters, options } = useFilterState(data);
+  const { data: products, loading, error } = useProducts();
+  const { filters, setFilters, options } = useFilterState(products);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [debouncedSearch] = useDebouncedValue(filters.search, 800);
+  const [debouncedSearchText] = useDebouncedValue(filters.search, 1000);
 
-  const categoryFiltered = useMemo(() => {
-    if (!data?.length) return [];
-    if (!filters.categories.length) return data;
-    return data.filter((p) => p.category && filters.categories.includes(p.category));
-  }, [data, filters.categories]);
+  const categoryBrandFilteredProducts = useMemo(() => {
+    if (!products?.length) return [];
 
-  const [filteredProducts, setFilteredProducts] = useState(categoryFiltered);
-  const [applying, setApplying] = useState(false);
+    const hasCategories = filters.categories.length > 0;
+    const hasBrands = filters.brands.length > 0;
+
+    return products.filter((product) => {
+      const matchesCategory =
+        !hasCategories || (product.category && filters.categories.includes(product.category));
+
+      const matchesBrand =
+        !hasBrands || (product.brand && filters.brands.includes(product.brand));
+
+      return matchesCategory && matchesBrand;
+    });
+  }, [products, filters.categories, filters.brands]);
+
+  const [filteredProducts, setFilteredProducts] = useState(categoryBrandFilteredProducts);
+  const [isApplyingFilters, setIsApplyingFilters] = useState(false);
 
   useEffect(() => {
-    if (!data?.length) return;
+    if (!products?.length) return;
 
-    setApplying(true);
+    setIsApplyingFilters(true);
+    const timerId = setTimeout(() => {
+      setFilteredProducts(applySearch(categoryBrandFilteredProducts, debouncedSearchText));
+      setIsApplyingFilters(false);
+    }, 500);
 
-    const id = setTimeout(() => {
-      setFilteredProducts(applySearch(categoryFiltered, debouncedSearch));
-      setApplying(false);
-    }, 1000); // simulate 1 sec fetch
-
-    return () => clearTimeout(id);
-  }, [debouncedSearch, categoryFiltered, data]);
+    return () => clearTimeout(timerId);
+  }, [debouncedSearchText, categoryBrandFilteredProducts, products]);
 
   return (
     <Layout title="Product Catalog">
@@ -53,14 +63,19 @@ export default function CatalogPage() {
           onClose={() => setFiltersOpen(false)}
           filters={filters}
           setFilters={setFilters}
-          options={{ categories: options.categories }}
+          options={{ categories: options.categories, brands: options.brands }}
         />
 
         <div className="flex-1">
           {loading && <Spinner label="Loading products..." />}
 
-          {!loading && !error && applying && <Spinner label="Applying filters..." />}
-          {!loading && !error && !applying && <ProductGrid products={filteredProducts} />}
+          {!loading && !error && isApplyingFilters && (
+            <Spinner label="Applying filters..." />
+          )}
+
+          {!loading && !error && !isApplyingFilters && (
+            <ProductGrid products={filteredProducts} />
+          )}
         </div>
       </div>
     </Layout>

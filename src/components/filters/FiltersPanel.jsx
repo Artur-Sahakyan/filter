@@ -1,10 +1,21 @@
+// src/components/filters/FiltersPanel.jsx
 import CheckboxList from "./CheckboxList";
 
 export default function FiltersPanel({ open, onClose, filters, setFilters, options }) {
-  const toggleCategory = (c) => {
-    const has = filters.categories.includes(c);
-    const next = has ? filters.categories.filter(x => x !== c) : [...filters.categories, c];
+  const toggleCategory = (category) => {
+    const isSelected = filters.categories.includes(category);
+    const next = isSelected
+      ? filters.categories.filter((c) => c !== category)
+      : [...filters.categories, category];
     setFilters({ ...filters, categories: next });
+  };
+
+  const toggleBrand = (brand) => {
+    const isSelected = filters.brands.includes(brand);
+    const next = isSelected
+      ? filters.brands.filter((b) => b !== brand)
+      : [...filters.brands, brand];
+    setFilters({ ...filters, brands: next });
   };
 
   const Body = (
@@ -29,9 +40,16 @@ export default function FiltersPanel({ open, onClose, filters, setFilters, optio
         onToggle={toggleCategory}
       />
 
+      <CheckboxList
+        title="Brand"
+        items={options.brands}
+        selected={filters.brands}
+        onToggle={toggleBrand}
+      />
+
       <button
         type="button"
-        onClick={() => setFilters({ search: "", categories: [] })}
+        onClick={() => setFilters({ search: "", categories: [], brands: [] })}
         className="w-full rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
       >
         Reset
