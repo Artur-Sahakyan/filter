@@ -55,8 +55,12 @@ export default function usePersistentFilters(filters, setFilters, options) {
 
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      const parsed = JSON.parse(raw);
-      setFilters(sanitizeFilters(parsed, options));
+      try {
+        const parsed = JSON.parse(raw);
+        setFilters(sanitizeFilters(parsed, options));
+      } catch  {
+        ///
+      }
     }
     hasRehydratedRef.current = true;
   }, [options, setFilters]);
