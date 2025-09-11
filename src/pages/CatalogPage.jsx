@@ -1,18 +1,22 @@
-import { useEffect, useMemo, useState } from "react";
-import Layout from "../components/Layout";
-import Spinner from "../components/Spinner";
-import ProductGrid from "../components/ProductGrid";
-import useProducts from "../hooks/useProducts";
-import useFilterState from "../hooks/useFilterState";
+import usePersistentFilters from "../hooks/usePersistentFilters";
+import { applySearch } from "../utils/helper/searchSimulator";
 import FiltersPanel from "../components/filters/FiltersPanel";
 import useDebouncedValue from "../hooks/useDebouncedValue";
-import { applySearch } from "../utils/helper/searchSimulator";
+import useFilterState from "../hooks/useFilterState";
+import ProductGrid from "../components/ProductGrid";
+import { useEffect, useMemo, useState } from "react";
+import useProducts from "../hooks/useProducts";
+import Spinner from "../components/Spinner";
+import Layout from "../components/Layout";
 
 export default function CatalogPage() {
   const { data: products, loading, error } = useProducts();
   const { filters, setFilters, options } = useFilterState(products);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [debouncedSearchText] = useDebouncedValue(filters.search, 1000);
+
+  // set filters in localstorage
+  usePersistentFilters(filters, setFilters, options);
 
   const categoryBrandPriceRatingFilteredProducts = useMemo(() => {
     if (!products?.length) return [];
@@ -67,14 +71,29 @@ export default function CatalogPage() {
 
     setIsApplyingFilters(true);
     const timerId = setTimeout(() => {
-      setFilteredProducts(
-        applySearch(categoryBrandPriceRatingFilteredProducts, debouncedSearchText)
-      );
+      const searched = applySearch(categoryBrandPriceRatingFilteredProducts, debouncedSearchText);
+      let finalList = searched;
+
+      if (filters.sort === "price-asc") {
+        finalList = [...searched].sort((a, b) => {
+          const aPrice = typeof a.price === "number" ? a.price : 0;
+          const bPrice = typeof b.price === "number" ? b.price : 0;
+          return aPrice - bPrice;
+        });
+      } else if (filters.sort === "price-desc") {
+        finalList = [...searched].sort((a, b) => {
+          const aPrice = typeof a.price === "number" ? a.price : 0;
+          const bPrice = typeof b.price === "number" ? b.price : 0;
+          return bPrice - aPrice;
+        });
+      }
+
+      setFilteredProducts(finalList);
       setIsApplyingFilters(false);
     }, 500); // simulat
 
     return () => clearTimeout(timerId);
-  }, [debouncedSearchText, categoryBrandPriceRatingFilteredProducts, products]);
+  }, [debouncedSearchText, categoryBrandPriceRatingFilteredProducts, products, filters.sort]);
 
   return (
     <Layout title="Product Catalog">

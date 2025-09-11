@@ -117,6 +117,22 @@ export default function FiltersPanel({ open, onClose, filters, setFilters, optio
         </div>
       </div>
 
+      {/* Sort */}
+      <div className="rounded-lg border border-gray-200">
+        <div className="border-b border-gray-200 px-3 py-2 text-sm font-medium">Sort</div>
+        <div className="p-3">
+          <select
+            value={filters.sort || ""}
+            onChange={(e) => setFilters({ ...filters, sort: e.target.value })}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none"
+          >
+            <option value="">Default</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+          </select>
+        </div>
+      </div>
+
 
       <button
         type="button"
@@ -127,6 +143,7 @@ export default function FiltersPanel({ open, onClose, filters, setFilters, optio
             brands: [],
             price: [options.minPrice, options.maxPrice],
             minRating: 0,
+            sort: "",
           })
         }
         className="w-full rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
