@@ -1,4 +1,5 @@
 import CheckboxList from "./CheckboxList";
+import { useEffect } from "react";
 
 export default function FiltersPanel({ open, onClose, filters, setFilters, options }) {
   const toggleCategory = (category) => {
@@ -16,6 +17,17 @@ export default function FiltersPanel({ open, onClose, filters, setFilters, optio
       : [...(filters.brands || []), brand];
     setFilters({ ...filters, brands: next });
   };
+
+
+  useEffect(() => {
+    if (open) {
+      const prev = document.documentElement.style.overflow;
+      document.documentElement.style.overflow = "hidden";
+      return () => { document.documentElement.style.overflow = prev || ""; };
+    }
+    document.documentElement.style.overflow = "";
+  }, [open]);
+
 
   const Body = (
     <div className="space-y-4">
@@ -135,12 +147,16 @@ export default function FiltersPanel({ open, onClose, filters, setFilters, optio
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-          <div className="absolute inset-y-0 left-0 w-80 max-w-[85vw] bg-white p-4 shadow-xl">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Filters</h2>
-              <button className="rounded border px-2 py-1 text-sm" onClick={onClose}>Close</button>
+          <div className="absolute inset-y-0 left-0 w-80 max-w-[85vw] bg-white shadow-xl flex h-full">
+            <div className="flex h-full w-full flex-col">
+              <div className="flex items-center justify-between border-b p-4">
+                <h2 className="text-lg font-semibold">Filters</h2>
+                <button className="rounded border px-2 py-1 text-sm" onClick={onClose}>Close</button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 overscroll-contain">
+                {Body}
+              </div>
             </div>
-            {Body}
           </div>
         </div>
       )}
